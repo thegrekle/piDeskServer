@@ -7,33 +7,25 @@ var power = false;
 var mute = false;
 
 const pinConfig = {
-    power: {
-        number: 18,
-        direction: gpio.DIR_OUT
-    },
-    mute: {
-        number: 17,
-        direction: gpio.DIR_OUT
-    },
+    power: 18,
+    mute: 17
 }
 
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
-    gpio.setup(pinConfig.power.number, pinConfig.power.direction);
-    gpio.setup(pinConfig.mute.number, pinConfig.mute.direction);
 
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
 
-            writePin(pinConfig.mute.number, true);
-            writePin(pinConfig.power.number, power);
+            writePin(pinConfig.mute, true);
+            writePin(pinConfig.power, power);
         }
 
         if (message == 'muteToggle') {
             mute = !mute;
 
-            writePin(pinConfig.mute.number, mute);
+            writePin(pinConfig.mute, mute);
         }
     });
 
@@ -42,8 +34,12 @@ wss.on('connection', function connection(ws) {
 
 
 function writePin(pinNumber, value) {
-    gpio.write(pinNumber, value, function (err) {
-        if (err) throw err;
-        console.log('Written to pin ' + pinNumber);
-    });
+    gpio.setup(pinNumber, gpio.DIR_OUT, write);
+
+    function write() {
+        this.gpio.write(pinNumber, value, function (err) {
+            if (err) throw err;
+            console.log('Written to pin ' + pinNumber);
+        });
+    }
 }
