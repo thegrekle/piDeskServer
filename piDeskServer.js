@@ -37,7 +37,7 @@ function writePin(pinNumber, value) {
     gpio.setup(pinNumber, gpio.DIR_OUT, write);
 
     function write() {
-        this.gpio.write(pinNumber, value, function (err) {
+        gpio.write(pinNumber, value, function (err) {
             if (err) throw err;
             console.log('Written to pin ' + pinNumber);
         });
