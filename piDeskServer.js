@@ -30,6 +30,11 @@ wss.on('connection', function connection(ws) {
             writePin(pinConfig.power.number, power);
         }
 
+        if (message == 'muteToggle') {
+            mute = !mute;
+
+            writePin(pinConfig.mute.number, mute);
+        }
     });
 
     ws.send('something');
