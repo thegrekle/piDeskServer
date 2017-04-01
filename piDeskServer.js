@@ -15,6 +15,18 @@ const pinConfig = {
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
 
+    async.parallel([
+        function (callback) {
+            gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
+        },
+        function (callback) {
+            gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
+        },
+    ], function (err, results) {
+        console.log('Pins set up');
+        write();
+    });
+
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
