@@ -15,35 +15,34 @@ const pinConfig = {
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
 
-    async.parallel([
-        function (callback) {
-            gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
-        },
-        function (callback) {
-            gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
-        },
-    ], function (err, results) {
-        console.log('Pins set up');
-    });
-
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
 
-            async.series([
+            async.parallel([
                 function (callback) {
-                    delayedWrite(pinConfig.mute, true, callback);
+                    gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
                 },
                 function (callback) {
-                    delayedWrite(pinConfig.power, power, callback, 0);
-                }
+                    gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
+                },
             ], function (err, results) {
-                if (err) {
-                    console.error(err);
-                }
-                else {
-                    console.log(`Powered ${power ? on : off}`);
-                }
+                console.log('Pins set up');
+                async.series([
+                    function (callback) {
+                        delayedWrite(pinConfig.mute, true, callback);
+                    },
+                    function (callback) {
+                        delayedWrite(pinConfig.power, power, callback, 0);
+                    }
+                ], function (err, results) {
+                    if (err) {
+                        console.error(err);
+                    }
+                    else {
+                        console.log(`Powered ${power ? on : off}`);
+                    }
+                });
             });
         }
 
