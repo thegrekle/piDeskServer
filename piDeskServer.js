@@ -24,7 +24,6 @@ wss.on('connection', function connection(ws) {
         },
     ], function (err, results) {
         console.log('Pins set up');
-        write();
     });
 
     ws.on('message', function incoming(message) {
