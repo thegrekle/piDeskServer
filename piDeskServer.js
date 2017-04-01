@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
-const gpio = require('rpi-gpio')
+const gpio = require('rpi-gpio');
+var async = require('async');
 
 const wss = new WebSocket.Server({ port: 8080 });
 
@@ -18,8 +19,21 @@ wss.on('connection', function connection(ws) {
         if (message == 'powerToggle') {
             power = !power;
 
-            writePin(pinConfig.mute, true);
-            writePin(pinConfig.power, power);
+            async.series([
+                function (callback) {
+                    delayedWrite(pinConfig.mute, true, callback);
+                },
+                function (callback) {
+                    delayedWrite(pinConfig.power, power, callback, 0);
+                }
+            ], function (err, results) {
+                if (err) {
+                    console.error(err);
+                }
+                else {
+                    console.log(`Powered ${power ? on : off}`);
+                }
+            });
         }
 
         if (message == 'muteToggle') {
@@ -29,17 +43,17 @@ wss.on('connection', function connection(ws) {
         }
     });
 
-    ws.send('something');
+    ws.on('close', function exit(code, reason) {
+        gpio.destroy(function () {
+            console.log(`Closing connection: ${code} : ${reason}`)
+        });
+    });
+
+    ws.send('connected to DeskPi');
 });
 
-
-function writePin(pinNumber, value) {
-    gpio.setup(pinNumber, gpio.DIR_OUT, write);
-
-    function write() {
-        gpio.write(pinNumber, value, function (err) {
-            if (err) throw err;
-            console.log('Written to pin ' + pinNumber);
-        });
-    }
+function delayedWrite(pin, value, callback, delay = 250) {
+    setTimeout(function () {
+        gpio.write(pin, value, callback);
+    }, delay);
 }
