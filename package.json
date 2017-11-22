@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "async": "^2.2.0",
-    "rpi-gpio": "^0.7.0",
     "ws": "^2.2.2"
   }
 }
