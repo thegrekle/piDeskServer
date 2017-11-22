@@ -44,13 +44,12 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
-
-            
+            delayedWrite(pinConfig.power, power, function(){}, 0);           
         }
 
         if (message == 'muteToggle') {
             mute = !mute;
-            delayedWrite(pinConfig.mute, mute, callback);
+            delayedWrite(pinConfig.mute, mute, function(){}, 0);
         }
     });
 
