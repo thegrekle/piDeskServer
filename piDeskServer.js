@@ -50,8 +50,7 @@ wss.on('connection', function connection(ws) {
 
         if (message == 'muteToggle') {
             mute = !mute;
-
-            writePin(pinConfig.mute, mute);
+            delayedWrite(pinConfig.mute, mute, callback);
         }
     });
 
