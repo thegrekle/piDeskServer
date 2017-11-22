@@ -36,7 +36,7 @@ wss.on('connection', function connection(ws) {
                         console.error(err);
                     }
                     else {
-                        console.log(`Powered ${power ? on : off}`);
+                        console.log(`Powered ${power ? "on" : "off"}`);
                     }
                 });
             });
