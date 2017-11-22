@@ -44,7 +44,9 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
-            delayedWrite(pinConfig.power, power, function(){}, 0);           
+            delayedWrite(pinConfig.mute, power, function(){}, 0);
+            delayedWrite(pinConfig.power, power, function(){}, 250);
+            delayedWrite(pinConfig.mute, !power, function(){}, 250);         
         }
 
         if (message == 'muteToggle') {
