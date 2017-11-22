@@ -2,7 +2,7 @@
 Description=piDesk server side for GPIO
 
 [Service]
-ExecStart=/usr/local/bin/node /opt/piDeskServer/piDeskServer.js
+ExecStart=/usr/bin/node /opt/piDeskServer/piDeskServer.js
 # Required on some systems
 #WorkingDirectory=/opt/nodeserver
 Restart=always
