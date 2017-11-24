@@ -13,9 +13,17 @@ const pinConfig = {
     mute: 17
 }
 
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+  });
+};
+
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
-
+    
     async.parallel([
                 function (callback) {
                     gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
@@ -23,6 +31,9 @@ wss.on('connection', function connection(ws) {
                 function (callback) {
                     gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
                 },
+		function (callback) {
+		    broadcastVolume();
+		}
             ], function (err, results) {
                 console.log('Pins set up');
                 async.series([
@@ -62,6 +73,10 @@ wss.on('connection', function connection(ws) {
 
             console.log(`Volume set to: ${getVolume()}`);
 	}
+
+	if (message.startsWith('getVolume')) {
+	    ws.send(`volumeSet:${getVolume()}`);
+	}
     });
 
     ws.on('close', function exit(code, reason) {
@@ -86,6 +101,10 @@ function beginSpi() {
     rpio.spiSetDataMode(0);
 }
 
+function broadcastVolume() {
+    wss.broadcast(`volumeSet:${getVolume()}`);
+}
+
 function endSpi() {
     rpio.spiEnd();
 }
@@ -103,6 +122,7 @@ function setVolume(volume) {
     rpio.spiWrite(txbuf1, txbuf1.length);
     rpio.spiWrite(txbuf2, txbuf2.length);
     endSpi();
+    broadcastVolume();
 }
 
 function getVolume() {
