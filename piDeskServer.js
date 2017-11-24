@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const gpio = require('rpi-gpio');
+var rpio = require('rpio');
 var async = require('async');
 
 const wss = new WebSocket.Server({ port: 8080 });
@@ -14,6 +15,8 @@ const pinConfig = {
 
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
+    rpio.init({gpiomem: false});
+    rpio.init({mapping: 'gpio'})
 
     async.parallel([
                 function (callback) {
@@ -53,6 +56,11 @@ wss.on('connection', function connection(ws) {
             mute = !mute;
             delayedWrite(pinConfig.mute, mute, function(){}, 0);
         }
+
+	if (message.startsWith('setVolume')) {
+	    var volume = message.split(':')[1];
+	    setVolume(volume);
+	}
     });
 
     ws.on('close', function exit(code, reason) {
@@ -68,4 +76,21 @@ function delayedWrite(pin, value, callback, delay = 250) {
     setTimeout(function () {
         gpio.write(pin, value, callback);
     }, delay);
+}
+
+function setVolume(volume) {
+    msb1 = volume >> 8
+    lsb1 = volume & 0xFF
+    var txbuf1 = new Buffer([msb1, lsb1]);
+
+    msb2 = volume >> 8
+    lsb2 = volume & 0xFF
+    var txbuf2 = new Buffer([msb2, lsb2]);
+
+    rpio.spiChipSelect(0);
+    rpio.spiSetCSPolarity(0, rpio.HIGH);
+    rpio.spiSetClockDivider(64);
+    rpio.spiWrite(txbuf1, txbuf1.length);
+    rpio.spiWrite(txbuf2, txbuf2.length);
+    rpio.spiEnd();
 }
