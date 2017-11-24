@@ -14,71 +14,71 @@ const pinConfig = {
 }
 
 wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  });
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    });
 };
 
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
-    
+
     async.parallel([
-                function (callback) {
-                    gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
-                },
-                function (callback) {
-                    gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
-                },
-		function (callback) {
-		    broadcastVolume();
-		    broadcastPowerState();
-		    broadcastMuteState();
-		}
-            ], function (err, results) {
-                console.log('Pins set up');
-                async.series([
-                    function (callback) {
-                        delayedWrite(pinConfig.mute, true, callback);
-                    },
-                    function (callback) {
-                        delayedWrite(pinConfig.power, power, callback, 0);
-                    }
-                ], function (err, results) {
-                    if (err) {
-                        console.error(err);
-                    }
-                    else {
-                        console.log(`Powered ${power ? "on" : "off"}`);
-                    }
-                });
-            });
+        function (callback) {
+            gpio.setup(pinConfig.power, gpio.DIR_OUT, callback)
+        },
+        function (callback) {
+            gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
+        },
+        function (callback) {
+            broadcastVolume();
+            broadcastPowerState();
+            broadcastMuteState();
+        }
+    ], function (err, results) {
+        console.log('Pins set up');
+        async.series([
+            function (callback) {
+                delayedWrite(pinConfig.mute, true, callback);
+            },
+            function (callback) {
+                delayedWrite(pinConfig.power, power, callback, 0);
+            }
+        ], function (err, results) {
+            if (err) {
+                console.error(err);
+            }
+            else {
+                console.log(`Powered ${power ? "on" : "off"}`);
+            }
+        });
+    });
 
     ws.on('message', function incoming(message) {
         if (message == 'powerToggle') {
             power = !power;
-            delayedWrite(pinConfig.mute, power, function(){}, 0);
-            delayedWrite(pinConfig.power, power, function(){}, 250);
-            delayedWrite(pinConfig.mute, !power, function(){}, 250);         
+            delayedWrite(pinConfig.mute, power, function () { }, 0);
+            delayedWrite(pinConfig.power, power, function () { }, 250);
+            delayedWrite(pinConfig.mute, !power, function () { }, 250);
         }
 
         if (message == 'muteToggle') {
             mute = !mute;
-            delayedWrite(pinConfig.mute, mute, function(){}, 0);
+            delayedWrite(pinConfig.mute, mute, function () { }, 0);
         }
 
-	if (message.startsWith('setVolume')) {
-	    var volume = message.split(':')[1];
-	    console.log(`Setting volume to: ${volume}`);
-	    setVolume(volume);
+        if (message.startsWith('setVolume')) {
+            var volume = message.split(':')[1];
+            console.log(`Setting volume to: ${volume}`);
+            setVolume(volume);
 
             console.log(`Volume set to: ${getVolume()}`);
-	}
+        }
 
-	if (message.startsWith('getVolume')) {
-	    ws.send(`volumeSet:${getVolume()}`);
-	}
+        if (message.startsWith('getVolume')) {
+            ws.send(`volumeSet:${getVolume()}`);
+        }
     });
 
     ws.on('close', function exit(code, reason) {
@@ -127,8 +127,8 @@ function setVolume(volume) {
     msb2 = volume >> 8 | 0x10
     lsb2 = volume
     var txbuf2 = new Buffer([msb2, lsb2]);
-    
-    beginSpi(); 
+
+    beginSpi();
     rpio.spiWrite(txbuf1, txbuf1.length);
     rpio.spiWrite(txbuf2, txbuf2.length);
     endSpi();
@@ -144,7 +144,7 @@ function getVolume() {
     beginSpi();
     rpio.spiTransfer(txbuf, rxbuf, txbuf.length);
     endSpi();
-    
+
     var msbOut = rxbuf[0];
     var lsbOut = rxbuf[1];
     var volume = ((rxbuf[0] & 0x01) << 8) + rxbuf[1]
