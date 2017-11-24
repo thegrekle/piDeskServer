@@ -15,8 +15,6 @@ const pinConfig = {
 
 wss.on('connection', function connection(ws) {
     gpio.setMode(gpio.MODE_BCM);
-    rpio.init({gpiomem: false});
-    rpio.init({mapping: 'gpio'})
 
     async.parallel([
                 function (callback) {
@@ -59,6 +57,7 @@ wss.on('connection', function connection(ws) {
 
 	if (message.startsWith('setVolume')) {
 	    var volume = message.split(':')[1];
+	    console.log(`Setting volume to: ${volume}`);
 	    setVolume(volume);
 	}
     });
@@ -79,17 +78,18 @@ function delayedWrite(pin, value, callback, delay = 250) {
 }
 
 function setVolume(volume) {
-    msb1 = volume >> 8
-    lsb1 = volume & 0xFF
+    msb1 = volume >> 8 | 0x10
+    lsb1 = volume
     var txbuf1 = new Buffer([msb1, lsb1]);
 
-    msb2 = volume >> 8
-    lsb2 = volume & 0xFF
+    msb2 = volume >> 8 | 0x30
+    lsb2 = volume
     var txbuf2 = new Buffer([msb2, lsb2]);
-
+    
+    rpio.spiBegin();
     rpio.spiChipSelect(0);
-    rpio.spiSetCSPolarity(0, rpio.HIGH);
-    rpio.spiSetClockDivider(64);
+    rpio.spiSetClockDivider(32);
+    rpio.spiSetDataMode(0);
     rpio.spiWrite(txbuf1, txbuf1.length);
     rpio.spiWrite(txbuf2, txbuf2.length);
     rpio.spiEnd();
