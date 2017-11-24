@@ -59,6 +59,8 @@ wss.on('connection', function connection(ws) {
 	    var volume = message.split(':')[1];
 	    console.log(`Setting volume to: ${volume}`);
 	    setVolume(volume);
+
+            console.log(`Volume set to: ${getVolume()}`);
 	}
     });
 
@@ -104,13 +106,17 @@ function setVolume(volume) {
 }
 
 function getVolume() {
-    msb1 = volume >> 8 | 0x10
-    lsb1 = volumemsb1 = volume >> 8 | 0x10
-    lsb1 = volume 
-    var txbuf = new Buffer([0x3, 0x0, 0xff, 0xff]);
+    msb1 = 0x0C
+    lsb1 = 0x00
+    var txbuf = new Buffer([msb1, lsb1]);
     var rxbuf = new Buffer(txbuf.length);
 
     beginSpi();
-	
+    rpio.spiTransfer(txbuf, rxbuf, txbuf.length);
     endSpi();
+    
+    var msbOut = rxbuf[0];
+    var lsbOut = rxbuf[1];
+    var volume = ((rxbuf[0] & 0x01) << 8) + rxbuf[1]
+    return volume;
 }
