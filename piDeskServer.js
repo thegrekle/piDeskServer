@@ -33,6 +33,8 @@ wss.on('connection', function connection(ws) {
                 },
 		function (callback) {
 		    broadcastVolume();
+		    broadcastPowerState();
+		    broadcastMuteState();
 		}
             ], function (err, results) {
                 console.log('Pins set up');
@@ -99,6 +101,14 @@ function beginSpi() {
     rpio.spiChipSelect(0);
     rpio.spiSetClockDivider(32);
     rpio.spiSetDataMode(0);
+}
+
+function broadcastPowerState() {
+    wss.broadcast(`powerState:${power}`);
+}
+
+function broadcastMuteState() {
+    wss.broadcast(`muteState:${mute}`);
 }
 
 function broadcastVolume() {
