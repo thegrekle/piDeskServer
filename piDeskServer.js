@@ -77,20 +77,40 @@ function delayedWrite(pin, value, callback, delay = 250) {
     }, delay);
 }
 
-function setVolume(volume) {
-    msb1 = volume >> 8 | 0x10
-    lsb1 = volume
-    var txbuf1 = new Buffer([msb1, lsb1]);
-
-    msb2 = volume >> 8 | 0x30
-    lsb2 = volume
-    var txbuf2 = new Buffer([msb2, lsb2]);
-    
+function beginSpi() {
     rpio.spiBegin();
     rpio.spiChipSelect(0);
     rpio.spiSetClockDivider(32);
     rpio.spiSetDataMode(0);
+}
+
+function endSpi() {
+    rpio.spiEnd();
+}
+
+function setVolume(volume) {
+    msb1 = volume >> 8 | 0x00
+    lsb1 = volume
+    var txbuf1 = new Buffer([msb1, lsb1]);
+
+    msb2 = volume >> 8 | 0x10
+    lsb2 = volume
+    var txbuf2 = new Buffer([msb2, lsb2]);
+    
+    beginSpi(); 
     rpio.spiWrite(txbuf1, txbuf1.length);
     rpio.spiWrite(txbuf2, txbuf2.length);
-    rpio.spiEnd();
+    endSpi();
+}
+
+function getVolume() {
+    msb1 = volume >> 8 | 0x10
+    lsb1 = volumemsb1 = volume >> 8 | 0x10
+    lsb1 = volume 
+    var txbuf = new Buffer([0x3, 0x0, 0xff, 0xff]);
+    var rxbuf = new Buffer(txbuf.length);
+
+    beginSpi();
+	
+    endSpi();
 }
