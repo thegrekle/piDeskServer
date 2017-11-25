@@ -6,7 +6,7 @@ var async = require('async');
 const wss = new WebSocket.Server({ port: 8080 });
 
 var power = false;
-var mute = false;
+var mustState = false;
 
 const pinConfig = {
     power: 18,
@@ -64,8 +64,7 @@ wss.on('connection', function connection(ws) {
         }
 
         if (message == 'muteToggle') {
-            mute = !mute;
-            delayedWrite(pinConfig.mute, mute, function () { }, 0);
+            setMute(!muteState);
         }
 
         if (message.startsWith('setVolume')) {
@@ -150,6 +149,11 @@ function endSpi() {
     rpio.spiEnd();
 }
 
+function setMute(mute) {
+    this.muteState = mute;
+    delayedWrite(pinConfig.mute, mute, function () { }, 0);
+}
+
 function setVolume(volume) {
     msb1 = volume >> 8 | 0x00
     lsb1 = volume
@@ -163,6 +167,7 @@ function setVolume(volume) {
     rpio.spiWrite(txbuf1, txbuf1.length);
     rpio.spiWrite(txbuf2, txbuf2.length);
     endSpi();
+    setMute(volume);
     broadcastVolume();
 }
 
