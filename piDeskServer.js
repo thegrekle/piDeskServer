@@ -30,14 +30,16 @@ wss.on('connection', function connection(ws) {
         },
         function (callback) {
             gpio.setup(pinConfig.mute, gpio.DIR_OUT, callback)
-        },
-        function (callback) {
-            broadcastVolume();
-            broadcastPowerState();
-            broadcastMuteState();
         }
     ], function (err, results) {
         console.log('Pins set up');
+        async.series([
+            function (callback) {
+                broadcastVolume();
+                broadcastPowerState();
+                broadcastMuteState();
+            }
+        ])
     });
 
     ws.on('message', function incoming(message) {
@@ -100,30 +102,30 @@ function broadcastVolume() {
 }
 
 function easeInCubic(t) {
-    return Math.pow(t,3);
+    return Math.pow(t, 3);
 }
 
 function easeOutCubic(t) {
-    return 1 - easeInCubic(1-t);
+    return 1 - easeInCubic(1 - t);
 }
 
 function easeVolume(volume) {
     const duration = 500;
     var time = 0;
-    var time = time/duration;
+    var time = time / duration;
 
     var startVolume = getVolume();
 
-    if(startVolume < volume) {
-        for(time; newVolume > startVolume; time = easeOutCubic(time)) {
-            var newVolume = startVolume + time*(volume-startVolume);
+    if (startVolume < volume) {
+        for (time; newVolume > startVolume; time = easeOutCubic(time)) {
+            var newVolume = startVolume + time * (volume - startVolume);
             //setVolume(volume);
             console.log(`setting volume to ${newVolume}`);
         }
     }
-    else if(volume < startVolume) {
-        for(time; newVolume < startVolume; time = easeInCubic(time)) {
-            var newVolume = startVolume + time*(volume-startVolume);
+    else if (volume < startVolume) {
+        for (time; newVolume < startVolume; time = easeInCubic(time)) {
+            var newVolume = startVolume + time * (volume - startVolume);
             //setVolume(volume);
             console.log(`setting volume to ${newVolume}`);
         }
