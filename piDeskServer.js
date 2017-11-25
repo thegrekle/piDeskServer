@@ -72,7 +72,7 @@ wss.on('connection', function connection(ws) {
             var volume = message.split(':')[1];
             console.log(`Setting volume to: ${volume}`);
             setVolume(volume);
-
+            easeVolume(volume);
             console.log(`Volume set to: ${getVolume()}`);
         }
 
@@ -113,6 +113,37 @@ function broadcastMuteState() {
 
 function broadcastVolume() {
     wss.broadcast(`volumeSet:${getVolume()}`);
+}
+
+function easeInCubic(t) {
+    return Math.pow(t,3);
+}
+
+function easeOutCubic(t) {
+    return 1 - easeInCubic(1-t);
+}
+
+function easeVolume(volume) {
+    const duration = 500;
+    var time = 0;
+    var time = time/duration;
+
+    var startVolume = getVolume();
+
+    if(startVolume < volume) {
+        for(time; newVolume > startVolume; time = easeOutCubic(time)) {
+            var newVolume = startVolume + time*(volume-startVolume);
+            //setVolume(volume);
+            console.log(`setting volume to ${newVolume}`);
+        }
+    }
+    else if(volume < startVolume) {
+        for(time; newVolume < startVolume; time = easeInCubic(time)) {
+            var newVolume = startVolume + time*(volume-startVolume);
+            //setVolume(volume);
+            console.log(`setting volume to ${newVolume}`);
+        }
+    }
 }
 
 function endSpi() {
