@@ -6,7 +6,7 @@ var async = require('async');
 const wss = new WebSocket.Server({ port: 8080 });
 
 var powerState = false;
-var mustState = false;
+var muteState = false;
 
 const pinConfig = {
     power: 18,
